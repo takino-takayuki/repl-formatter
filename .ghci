@@ -1,0 +1,21 @@
+import Data.Time
+let date _ = getCurrentTime >>= putStrLn . formatTime defaultTimeLocale rfc822DateFormat >> return ""
+:def date date
+
+let test1 _ = putStrLn "test_out" >> return ":t main"
+:def test test1
+
+:{
+three :: String -> IO String
+three a = do
+  let s = "let " <> a <> " = [1,2,3]"
+  print s
+  print a
+  return s
+
+:}
+
+:def three three
+
+
+

@@ -22,56 +22,110 @@ name:               repl-formatter
 --                  | | | +--- code changes with no API change
 version:            0.1.0.0
 
--- A short (one-line) description of the package.
--- synopsis:
-
--- A longer description of the package.
--- description:
-
 -- The license under which the package is released.
 license:            MIT
-
--- The file containing the license text.
 license-file:       LICENSE
 
 -- The package author(s).
 author:             takino-takayuki
-
--- An email address to which users can send suggestions, bug reports, and patches.
 maintainer:         takino.t3@gmail.com
 
--- A copyright notice.
--- copyright:
 category:           Development
-build-type:         Simple
 
--- Extra doc files to be distributed with the package, such as a CHANGELOG or a README.
-extra-doc-files:    CHANGELOG.md
-
--- Extra source files to be distributed with the package, such as examples, or a tutorial module.
--- extra-source-files:
-
+-- ----------------------------------------------------
+-- COMMON CONFIG
+-- ----------------------------------------------------
 common warnings
     ghc-options: -Wall
 
+-- ★ 共通依存関係をまとめる新しい COMMON スタンザ
+common core-deps
+    import: warnings
+    -- 'base' のバージョン制約、'text', 'bytestring' など、
+    -- ほとんどの実行ファイルで必要なものをここに記述します。
+    build-depends:
+        base ^>=4.21.0.0
+      , text
+      , bytestring
+      , process
+      , time
+      , aeson
+    default-language: Haskell2010
+
+
+-- =======================================================
+-- LIBRARY SECTION: Core formatting logic (src/)
+-- =======================================================
+library
+  import:           core-deps
+  exposed-modules:
+      Formatter.Core
+      Formatter.Parser
+      Formatter.ReplUtils
+      ReplUtils
+  -- Source directory for the library
+  hs-source-dirs:   src
+  -- Core dependencies: megaparsec for parsing, text for string handling.
+  build-depends:
+      megaparsec
+    , directory
+    , hspec
+
+-- =======================================================
+-- EXECUTABLE SECTION: Main CLI application (app/)
+-- =======================================================
 executable repl-formatter
-    -- Import common warning flags.
-    import:           warnings
+  import:           core-deps
+  main-is:          Main.hs
+  -- Source directory for the executable
+  hs-source-dirs:   app
+  -- Dependencies: depends on the core library, plus optparse-applicative for CLI args.
+  build-depends:
+      repl-formatter
+    , optparse-applicative
+    , hspec
 
-    -- .hs or .lhs file containing the Main module.
-    main-is:          Main.hs
+-- =======================================================
+-- TEST SUITE SECTION: Hspec tests (test/)
+-- =======================================================
+test-suite repl-formatter-test
+  import:           core-deps
+  type:             exitcode-stdio-1.0
+  -- Source directory for the tests
+  hs-source-dirs:   test
+  main-is:          Spec.hs
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+  -- ★ 修正箇所: テストモジュールを明示的にリスト化（GHC-32850警告を解消）
+  other-modules:
+      Formatter.CoreSpec
+      Formatter.ParserSpec
+      CurrentScratch
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+  -- Dependencies: depends on the core library and hspec for testing.
+  build-depends:
+      base ^>=4.21.0.0
+    , repl-formatter
+    , hspec >= 2.7
 
-    -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.21.0.0
+    -- ... add other libraries as needed
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
 
-    -- Directories containing source files.
-    hs-source-dirs:   app
+-- =======================================================
+-- EXECUTABLE SECTION 2: JSON Processor (json_processor.hs)
+-- =======================================================
+-- ★ 新しいJSON処理実行単位
+executable processor
+  import:           core-deps
+  main-is:          JsonProcessor.hs
+  hs-source-dirs:   app
+  -- dependencies: なし (core-depsに含まれているため)
 
-    -- Base language which the package is written in.
-    default-language: GHC2021
+-- =======================================================
+-- EXECUTABLE SECTION 3: JSON Key Generator (KeyGenerator.hs)
+-- =======================================================
+-- ★ コメントを削除し、main-is を KeyGenerator.hs に変更
+executable key-generator
+  import:           core-deps
+  main-is:          KeyGenerator.hs
+  hs-source-dirs:   app

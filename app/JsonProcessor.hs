@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Main (main) where
 import Data.Aeson
 import GHC.Generics
 import qualified Data.ByteString.Lazy.Char8 as B
@@ -10,7 +9,8 @@ import System.Exit (exitWith, ExitCode(ExitFailure, ExitSuccess))
 import System.IO (hPutStrLn, stderr) -- デバッグ目的
 import Control.Monad (unless)
 import Data.Text (Text)
-import qualified Data.Text as T -- ★ 修正箇所: T.pack を使うために追加
+import qualified Data.Text as T
+
 -- ----------------------------------------------------
 -- 1. データ型定義 (入出力)
 -- ----------------------------------------------------
